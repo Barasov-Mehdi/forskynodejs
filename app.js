@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/', imageRoutes);
 
 // MongoDB bağlantısı
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URL)
   .then(() => console.log('MongoDB bağlantısı başarılı'))
   .catch(err => console.log(err));
 

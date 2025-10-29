@@ -1,70 +1,97 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary');
+const cloudinary = require('../config/cloudinary'); 
 const Image = require('../models/Image');
-// fs modülüne artık ihtiyacımız yok, çünkü diske yazmıyoruz.
 
-// 1. MULTER AYARINI DEĞİŞTİRİN: Disk yerine Memory Storage kullanın.
+// KRİTİK: Vercel'in read-only (salt okunur) dosya sistemine uymak için
+// Multer'ı diske (diskStorage) değil, belleğe (memoryStorage) kaydetmesi için ayarla.
 const upload = multer({ storage: multer.memoryStorage() });
+
+// --- GÖRÜNTÜLEME VE LİSTELEME ROUTE'LARI ---
 
 // Ana sayfa: resimleri listele
 router.get('/', async (req, res) => {
-    const images = await Image.find().sort({ createdAt: -1 });
-    res.render('index', { images });
+    try {
+        // MongooseError timeout hatası devam ederse, sorun HÂLÂ MongoDB Atlas ağ ayarlarınızdadır.
+        const images = await Image.find().sort({ createdAt: -1 });
+        res.render('index', { images });
+    } catch (error) {
+        console.error("Ana sayfa veri çekme hatası:", error.message);
+        // MongoDB bağlantı hatası durumunda kullanıcıya bilgi ver
+        res.status(500).send('Veritabanından veri çekilemedi. Lütfen MongoDB bağlantınızı ve Ağ Erişimi ayarlarınızı kontrol edin.');
+    }
 });
 
-// Yükleme formu
+// Yükleme formu sayfasını göster
 router.get('/upload', (req, res) => {
     const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEW BORN', 'BOQUETS', 'GIFTS'];
     res.render('upload', { categories });
 });
 
-// Resim yükleme (EN KRİTİK DEĞİŞİKLİK BURADA)
+
+// --- YÜKLEME VE SİLME ROUTE'LARI ---
+
+// Resim yükleme
 router.post('/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).send('Dosya bulunamadı.');
         }
 
-        // 2. YÜKLEME YÖNTEMİNİ DEĞİŞTİRİN: req.file.path yerine req.file.buffer kullanın
-        // Dosyayı base64'e dönüştürme formatı
+        // 1. Bellekteki dosya buffer'ını Cloudinary'ye yüklemek için base64 URI'ye çeviriyoruz
         const b64 = Buffer.from(req.file.buffer).toString("base64");
         let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
-        const result = await cloudinary.uploader.upload(dataURI);
-        
+        // 2. Cloudinary'ye yükle
+        const result = await cloudinary.uploader.upload(dataURI, {
+            folder: "forskynodejs" // İsteğe bağlı olarak Cloudinary'de bir klasör belirle
+        });
+
+        // 3. Veritabanına kaydet
         const newImage = new Image({
             title: req.body.title,
             category: req.body.category,
-            imageUrl: result.secure_url
+            imageUrl: result.secure_url,
+            // Eğer Cloudinary Public ID'sini silme işlemi için saklamak isterseniz:
+            // cloudinaryId: result.public_id 
         });
-        await newImage.save();
+        await newImage.save(); 
         
-        // 3. YEREL DOSYA SİLME İŞLEMİNİ KALDIRIN (ÇÜNKÜ DOSYA YAZILMADI)
-        // fs.unlinkSync(req.file.path); // <-- BU SATIR YORUMA ALINDI/KALDIRILDI
-
         res.redirect('/');
     } catch (error) {
-        res.status(500).send('Bir hata oluştu: ' + error.message);
+        console.error("Yükleme işlemi sırasında hata oluştu:", error.message);
+        res.status(500).send('Resim yüklenirken bir hata oluştu: ' + error.message);
     }
 });
 
-// Resim silme
+// Resim silme (Veritabanından)
 router.post('/delete/:id', async (req, res) => {
     try {
+        // İsteğe bağlı: Eğer Cloudinary'den de silmek isterseniz, önce public_id'yi bulmanız gerekir.
+        // const imageToDelete = await Image.findById(req.params.id);
+        // if (imageToDelete.cloudinaryId) { await cloudinary.uploader.destroy(imageToDelete.cloudinaryId); }
+        
         await Image.findByIdAndDelete(req.params.id);
         res.redirect('/');
     } catch (error) {
-        res.status(500).send(error.message);
+        console.error("Silme işlemi sırasında hata oluştu:", error.message);
+        res.status(500).send('Silme işlemi başarısız oldu: ' + error.message);
     }
 });
 
+
+// --- DÜZENLEME ROUTE'LARI ---
+
 // Resim düzenleme formu
 router.get('/edit/:id', async (req, res) => {
-    const image = await Image.findById(req.params.id);
-    const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEW BORN', 'BOQUETS', 'GIFTS'];
-    res.render('edit', { image, categories });
+    try {
+        const image = await Image.findById(req.params.id);
+        const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEW BORN', 'BOQUETS', 'GIFTS'];
+        res.render('edit', { image, categories });
+    } catch (error) {
+         res.status(404).send('Resim bulunamadı.');
+    }
 });
 
 // Resim düzenleme kaydet
@@ -76,7 +103,8 @@ router.post('/edit/:id', async (req, res) => {
         });
         res.redirect('/');
     } catch (error) {
-        res.status(500).send(error.message);
+        console.error("Düzenleme işlemi sırasında hata oluştu:", error.message);
+        res.status(500).send('Düzenleme işlemi başarısız oldu: ' + error.message);
     }
 });
 

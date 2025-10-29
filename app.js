@@ -3,38 +3,27 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const imageRoutes = require('./routes/imageRoutes');
 const path = require('path');
-const serverless = require('vercel-express');
 
 dotenv.config();
 
+// Express uygulamasını oluştur
 const app = express();
 
-// EJS ve statik dosyalar
 app.set('view engine', 'ejs');
+// Dosya yollarını Vercel ortamına uygun hale getiriyoruz
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
+
+// Statik dosyalar (Vercel'de bu klasörün kök dizinde 'public' olarak bulunduğundan emin olun)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB connection cache
-let isConnected = false;
-async function connectDB() {
-  if (isConnected) return;
-  await mongoose.connect(process.env.MONGODB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  isConnected = true;
-  console.log('MongoDB bağlantısı başarılı');
-}
-
-// Middleware ile her request öncesi DB bağlanıyor
-app.use(async (req, res, next) => {
-  if (!isConnected) await connectDB();
-  next();
-});
-
-// Routes
+// Rota tanımlaması
 app.use('/', imageRoutes);
 
-// Vercel için export
-module.exports = serverless(app);
+// MongoDB bağlantısı
+mongoose.connect(process.env.MONGODB_URL)
+  .then(() => console.log('MongoDB bağlantısı başarılı'))
+  .catch(err => console.log('MongoDB bağlantı hatası:', err));
+
+// Uygulama çekirdeğini dışa aktar
+module.exports = app;

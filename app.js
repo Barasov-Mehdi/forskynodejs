@@ -2,37 +2,44 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-// routes klasörüne ait doğru yolu hesaplamak için require('../routes/imageRoutes') yerine
-// önce rota dosyasını tanımlayalım:
-const imageRoutes = require('./routes/imageRoutes'); 
+const imageRoutes = require('../routes/imageRoutes'); 
+const fs = require('fs'); // fs'yi require edin, multer temp dosya silmede kullanılıyor
 
 dotenv.config();
 
 const app = express();
 
-// MongoDB bağlantısı (Başarısız olsa bile, şimdilik yol hatasına odaklanıyoruz)
+// 1. KONTROL NOKTASI
+console.log('--- Uygulama Başlatılıyor ---');
+console.log('MongoDB URL Var Mı? ', !!process.env.MONGODB_URL); // URL'nin varlığını kontrol et
+
+// MongoDB bağlantısı
+// Burası çökerse, sorun %99 bağlantı dizesindedir.
 mongoose.connect(process.env.MONGODB_URL)
   .then(() => console.log('MongoDB bağlantısı başarılı'))
-  .catch(err => console.log('MongoDB bağlantı hatası: ', err.message));
+  .catch(err => {
+        // Bu hata Vercel loglarında görünmeli ve 500 hatasının kaynağı olmalıdır.
+        console.error('KRİTİK HATA: MongoDB bağlantısı başarısız oldu!', err.message); 
+        // Uygulamayı çökertmek yerine bir hata mesajı dönmek, hatayı görmemizi sağlar.
+        process.exit(1); 
+    });
+    
+// 2. KONTROL NOKTASI
+console.log('--- MongoDB Bağlantısı Geçti ---');
 
+// EJS ve Middleware ayarları... (diğer kodunuz aynı kalacak)
 
-// YOL DÜZELTMESİ: __dirname yerine Vercel'de doğru yolu hesaplamak için 'path.resolve' kullanacağız.
-// Serverless ortamda __dirname kullanımı karmaşıklığa yol açabilir.
-
-// EJS View Engine ayarları
 app.set('view engine', 'ejs');
-// 'views' klasörünün projenin ana kökünde olduğunu varsayarak yolu ayarla
 app.set('views', path.join(process.cwd(), 'views')); 
 
-// Express Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Statik dosyalar için middleware (public klasörünü kök dizinden bul)
 app.use(express.static(path.join(process.cwd(), 'public')));
 
-// Ana rotalar
 app.use('/', imageRoutes);
 
-// Vercel Serverless Function olarak Express uygulamasını dışa aktar
+// 3. KONTROL NOKTASI
+console.log('--- Rotalar Yüklendi ve Uygulama Hazır ---');
+
 module.exports = app;

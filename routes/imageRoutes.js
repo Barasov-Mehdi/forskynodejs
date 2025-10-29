@@ -1,17 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary');
+const cloudinary = require('../config/cloudinary'); // Cloudinary config burada olmalı
 const Image = require('../models/Image');
-const fs = require('fs');
 
-const upload = multer({ dest: 'uploads/' });
+// ✅ Multer disk yerine MEMORY storage kullanılır (Vercel uyumlu)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// ✅ Vercel'de view engine kullanıyorsan bu dosya sadece route döndürür,
-// render işlemleri app.js içinde yapılır.
-// Bu nedenle `res.render` yerine `res.json` ya da template path döndürmek daha uygundur.
-
-// Ana sayfa: resimleri listele
+// ✅ Ana sayfa: resimleri listele
 router.get('/', async (req, res) => {
   try {
     const images = await Image.find().sort({ createdAt: -1 });
@@ -21,16 +18,28 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Yükleme formu için kategoriler gönder
+// ✅ Yükleme kategorileri
 router.get('/upload', (req, res) => {
   const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEW BORN', 'BOQUETS', 'GIFTS'];
   res.status(200).json({ success: true, categories });
 });
 
-// Resim yükleme
+// ✅ Resim yükleme: Memory'den Cloudinary'ye direkt upload
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path);
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image file provided' });
+    }
+
+    // Buffer'ı Base64 yapıya çevir
+    const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+    // Cloudinary'ye yükleme
+    const result = await cloudinary.uploader.upload(fileBase64, {
+      folder: 'my_images' // ✅ Cloudinary'de klasör ismi (isteğe bağlı)
+    });
+
+    // Veritabanına kaydet
     const newImage = new Image({
       title: req.body.title,
       category: req.body.category,
@@ -38,18 +47,17 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     });
     await newImage.save();
 
-    // Temporary dosyayı sil
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
-    res.status(201).json({ success: true, message: 'Image uploaded successfully', image: newImage });
+    res.status(201).json({
+      success: true,
+      message: 'Image uploaded successfully',
+      image: newImage
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Resim silme
+// ✅ Resim silme
 router.delete('/delete/:id', async (req, res) => {
   try {
     await Image.findByIdAndDelete(req.params.id);
@@ -59,7 +67,7 @@ router.delete('/delete/:id', async (req, res) => {
   }
 });
 
-// Resim düzenleme
+// ✅ Resim düzenleme
 router.put('/edit/:id', async (req, res) => {
   try {
     await Image.findByIdAndUpdate(req.params.id, {

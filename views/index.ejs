@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Resimler</title>
+</head>
+<body>
+  <h1>Resimler</h1>
+  <a href="/upload">Yeni Resim Yükle</a>
+  <hr>
+  <% images.forEach(img => { %>
+    <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
+      <h3><%= img.title %> (<%= img.category %>)</h3>
+      <img src="<%= img.imageUrl %>" width="200"><br><br>
+      <a href="/edit/<%= img._id %>">Düzenle</a>
+      <form action="/delete/<%= img._id %>" method="POST" style="display:inline;">
+        <button type="submit">Sil</button>
+      </form>
+    </div>
+  <% }) %>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Resmi Düzenle</title>
+</head>
+<body>
+  <h1>Resmi Düzenle</h1>
+  <form action="/edit/<%= image._id %>" method="POST">
+    <label>Başlık:</label>
+    <input type="text" name="title" value="<%= image.title %>" required><br><br>
+
+    <label>Kategori:</label>
+    <select name="category" required>
+      <% categories.forEach(cat => { %>
+        <option value="<%= cat %>" <%= cat === image.category ? 'selected' : '' %>><%= cat %></option>
+      <% }) %>
+    </select><br><br>
+
+    <button type="submit">Kaydet</button>
+  </form>
+  <a href="/">Ana Sayfa</a>
+</body>
+</html>

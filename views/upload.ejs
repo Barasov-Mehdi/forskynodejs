@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Resim Yükle</title>
+</head>
+<body>
+  <h1>Resim Yükle</h1>
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <label>Başlık:</label>
+    <input type="text" name="title" required><br><br>
+
+    <label>Kategori:</label>
+    <select name="category" required>
+      <% categories.forEach(cat => { %>
+        <option value="<%= cat %>"><%= cat %></option>
+      <% }) %>
+    </select><br><br>
+
+    <label>Resim Seç:</label>
+    <input type="file" name="image" required><br><br>
+
+    <button type="submit">Yükle</button>
+  </form>
+  <a href="/">Ana Sayfa</a>
+</body>
+</html>

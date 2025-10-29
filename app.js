@@ -3,13 +3,11 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const imageRoutes = require('./routes/imageRoutes');
 const path = require('path');
+const serverless = require('vercel-express');
 
 dotenv.config();
-const app = express();
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB bağlantısı başarılı'))
-  .catch(err => console.log(err));
+const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -17,5 +15,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/', imageRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Sunucu çalışıyor: http://localhost:${PORT}`));
+// MongoDB bağlantısı
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB bağlantısı başarılı'))
+  .catch(err => console.log(err));
+
+module.exports = serverless(app); // <-- Serverless olarak export ediyoruz

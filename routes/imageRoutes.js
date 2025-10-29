@@ -1,25 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+// Cloudinary config ve Mongoose modeli import ediliyor
 const cloudinary = require('../config/cloudinary'); 
 const Image = require('../models/Image');
 
-// KRİTİK: Vercel'in read-only (salt okunur) dosya sistemine uymak için
-// Multer'ı diske (diskStorage) değil, belleğe (memoryStorage) kaydetmesi için ayarla.
+// KRİTİK: Vercel'in kısıtlamalarına uymak için Multer'ı disk yerine bellek kullanması için ayarla.
 const upload = multer({ storage: multer.memoryStorage() });
 
-// --- GÖRÜNTÜLEME VE LİSTELEME ROUTE'LARI ---
+// --- GÖRÜNTÜLEME VE LİSTELEME ---
 
 // Ana sayfa: resimleri listele
 router.get('/', async (req, res) => {
     try {
-        // MongooseError timeout hatası devam ederse, sorun HÂLÂ MongoDB Atlas ağ ayarlarınızdadır.
         const images = await Image.find().sort({ createdAt: -1 });
         res.render('index', { images });
     } catch (error) {
         console.error("Ana sayfa veri çekme hatası:", error.message);
-        // MongoDB bağlantı hatası durumunda kullanıcıya bilgi ver
-        res.status(500).send('Veritabanından veri çekilemedi. Lütfen MongoDB bağlantınızı ve Ağ Erişimi ayarlarınızı kontrol edin.');
+        // MongoDB bağlantı hatası durumunda (MongooseServerSelectionError) kullanıcıya uyarı
+        res.status(500).send('Veritabanı bağlantı hatası: Lütfen MongoDB Atlas Network Access ayarlarınızı kontrol edin (0.0.0.0/0).');
     }
 });
 
@@ -30,16 +29,16 @@ router.get('/upload', (req, res) => {
 });
 
 
-// --- YÜKLEME VE SİLME ROUTE'LARI ---
+// --- CLOUDINARY'E YÜKLEME ---
 
-// Resim yükleme
+// Resim yükleme ve Cloudinary'ye gönderme
 router.post('/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).send('Dosya bulunamadı.');
         }
 
-        // 1. Bellekteki dosya buffer'ını Cloudinary'ye yüklemek için base64 URI'ye çeviriyoruz
+        // 1. Bellekteki dosyayı Cloudinary'nin kabul ettiği base64 veri URI'sine dönüştür
         const b64 = Buffer.from(req.file.buffer).toString("base64");
         let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
@@ -52,9 +51,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
         const newImage = new Image({
             title: req.body.title,
             category: req.body.category,
-            imageUrl: result.secure_url,
-            // Eğer Cloudinary Public ID'sini silme işlemi için saklamak isterseniz:
-            // cloudinaryId: result.public_id 
+            imageUrl: result.secure_url
         });
         await newImage.save(); 
         
@@ -65,13 +62,12 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     }
 });
 
+
+// --- DÜZENLEME VE SİLME ---
+
 // Resim silme (Veritabanından)
 router.post('/delete/:id', async (req, res) => {
     try {
-        // İsteğe bağlı: Eğer Cloudinary'den de silmek isterseniz, önce public_id'yi bulmanız gerekir.
-        // const imageToDelete = await Image.findById(req.params.id);
-        // if (imageToDelete.cloudinaryId) { await cloudinary.uploader.destroy(imageToDelete.cloudinaryId); }
-        
         await Image.findByIdAndDelete(req.params.id);
         res.redirect('/');
     } catch (error) {
@@ -79,9 +75,6 @@ router.post('/delete/:id', async (req, res) => {
         res.status(500).send('Silme işlemi başarısız oldu: ' + error.message);
     }
 });
-
-
-// --- DÜZENLEME ROUTE'LARI ---
 
 // Resim düzenleme formu
 router.get('/edit/:id', async (req, res) => {

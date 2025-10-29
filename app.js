@@ -26,4 +26,4 @@ mongoose.connect(process.env.MONGODB_URL)
   .catch(err => console.log('MongoDB bağlantı hatası:', err));
 
 // Uygulama çekirdeğini dışa aktar
-module.exports = app;
+module.exports = serverless(app);

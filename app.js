@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 // Rota dosyası artık bir üst klasörde (..)
-const imageRoutes = require('../routes/imageRoutes'); 
+const imageRoutes = require('./routes/imageRoutes'); 
 const path = require('path');
 
 // Ortam değişkenlerini yükle

@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary'); // Cloudinary config burada olmalı
+const cloudinary = require('../config/cloudinary');
 const Image = require('../models/Image');
 
-// ✅ Multer disk yerine MEMORY storage kullanılır (Vercel uyumlu)
+// ✅ Multer memory storage (Vercel uyumlu)
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
@@ -18,28 +18,22 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ Yükleme kategorileri
+// ✅ Kategoriler
 router.get('/upload', (req, res) => {
   const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEW BORN', 'BOQUETS', 'GIFTS'];
   res.status(200).json({ success: true, categories });
 });
 
-// ✅ Resim yükleme: Memory'den Cloudinary'ye direkt upload
+// ✅ Resim yükleme: Memory'den Cloudinary'ye
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No image file provided' });
     }
 
-    // Buffer'ı Base64 yapıya çevir
     const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const result = await cloudinary.uploader.upload(fileBase64, { folder: 'my_images' });
 
-    // Cloudinary'ye yükleme
-    const result = await cloudinary.uploader.upload(fileBase64, {
-      folder: 'my_images' // ✅ Cloudinary'de klasör ismi (isteğe bağlı)
-    });
-
-    // Veritabanına kaydet
     const newImage = new Image({
       title: req.body.title,
       category: req.body.category,
@@ -47,11 +41,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     });
     await newImage.save();
 
-    res.status(201).json({
-      success: true,
-      message: 'Image uploaded successfully',
-      image: newImage
-    });
+    res.status(201).json({ success: true, image: newImage });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -2,32 +2,26 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-const imageRoutes = require('./routes/imageRoutes'); // ✅ path düzeltildi
-const serverless = require('serverless-http'); // ✅ Vercel için gerekli
+const imageRoutes = require('./routes/imageRoutes');
+const serverless = require('serverless-http');
 
 dotenv.config();
 
 const app = express();
 
-// 1. KONTROL
-console.log('--- Uygulama Başlatılıyor ---');
-console.log('MongoDB URL Var mı? ', !!process.env.MONGODB_URL);
-
-// MongoDB Bağlantısı
+// MongoDB bağlantısı
 mongoose.connect(process.env.MONGODB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 })
 .then(() => console.log('✅ MongoDB bağlantısı başarılı'))
 .catch(err => {
-    console.error('❌ KRİTİK HATA: MongoDB bağlantısı başarısız oldu!', err.message);
-    process.exit(1);
+  console.error('❌ MongoDB bağlantı hatası:', err.message);
 });
 
-// EJS engine ayarları
+// View Engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views')); 
-// ✅ process.cwd yerine __dirname kullanmak vercel'de daha stabildir
+app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -37,8 +31,5 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rotalar
 app.use('/', imageRoutes);
 
-console.log('--- 🚀 Rotalar Yüklendi ve Uygulama Hazır ---');
-
-// ✅ Vercel serverless export
-module.exports = app;
+// ❗ Sadece handler export edilmeli
 module.exports.handler = serverless(app);

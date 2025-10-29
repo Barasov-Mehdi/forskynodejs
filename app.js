@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = express();
 
-// --- 1. EXPRESS MIDDLEWARE'LERİ (Rota Yüklemeden ÖNCE) ---
+// --- 1. EXPRESS MIDDLEWARE'LERİ (Rota Yüklemeden Önce) ---
 app.set('view engine', 'ejs');
 // Lütfen 'views' klasörünün uygulamanızın kökünde olduğundan emin olun
 app.set('views', path.join(__dirname, 'views')); 
@@ -36,6 +36,13 @@ mongoose.connect(MONGODB_URL)
 // Bağlantı başarısız olsa bile, Express'in bu rotayı bilmesi gerekir ki
 // 404 yerine doğru hata mesajını (veya 500) döndürebilelim.
 app.use('/', imageRoutes);
+
+// --- 4. HATA YÖNETİMİ / 404 YAKALAYICI ---
+// Yukarıdaki rotaların hiçbiri eşleşmezse bu blok çalışır ve 404 döndürülür.
+app.use((req, res) => {
+    // Vercel'in `Cannot GET /` hatası yerine daha bilgilendirici bir mesaj döndür.
+    res.status(404).send(`404: Aradığınız sayfa (${req.originalUrl}) bulunamadı. Lütfen rota tanımlarınızı kontrol edin.`);
+});
 
 // Vercel, Express uygulaması objesinin dışa aktarılmasını gerektirir.
 // Eğer dosyanızın adı 'app.js' ise:

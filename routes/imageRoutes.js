@@ -5,8 +5,8 @@ const cloudinary = require('../config/cloudinary');
 const Image = require('../models/Image');
 const fs = require('fs');
 
-// KRİTİK DÜZELTME: Multer, Vercel'in yazılabilir tek klasörü olan /tmp'yi kullanmalı.
-const upload = multer({ dest: '/tmp/' });
+// Buradaki dest: '/tmp/' KRİTİK öneme sahiptir.
+const upload = multer({ dest: '/tmp/' }); 
 
 // Ana sayfa: resimleri listele
 router.get('/', async (req, res) => {

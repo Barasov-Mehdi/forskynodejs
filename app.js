@@ -1,41 +1,50 @@
+// Dosyanızın başlangıcı
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const imageRoutes = require('./routes/imageRoutes'); // Rotanız
 const path = require('path');
+const dotenv = require('dotenv');
 
 // Ortam değişkenlerini (MONGODB_URL gibi) yükle
 dotenv.config();
 
 const app = express();
 
-// --- KRİTİK ADIM: MONGOOSE VERİTABANI BAĞLANTISI ---
-// Bu bağlantının Vercel'de çalışması için MONGODB_URL ortam değişkeninin doğru olması şarttır.
-mongoose.connect(process.env.MONGODB_URL)
-    .then(() => {
-        console.log('MongoDB bağlantısı başarılı.');
-        // Bağlantı başarılıysa, routes'u yükleyebiliriz
-        const imageRoutes = require('./routes/imageRoutes');
-        app.use('/', imageRoutes);
-    })
-    .catch(err => {
-        // Hata durumunda loglama yap
-        console.error('MongoDB Bağlantı Hatası:', err);
-        // Hata durumunda kullanıcıya 500 hatası göster
-        app.use((req, res) => {
-            res.status(500).send("Veritabanı bağlantı hatası. Lütfen MONGODB_URL ve MongoDB Atlas ağ ayarlarınızı kontrol edin.");
-        });
-    });
-
-// Routes'u tanımlamadan önce middleware'leri ayarla
+// --- 1. EXPRESS MIDDLEWARE'LERİ (Rota Yüklemeden ÖNCE) ---
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// Lütfen 'views' klasörünün uygulamanızın kökünde olduğundan emin olun
+app.set('views', path.join(__dirname, 'views')); 
 app.use(express.urlencoded({ extended: true }));
-
-// Statik dosyalar için public klasörünü kullanıyorsanız ekleyin (örneğin CSS, JS)
+// Statik dosyalar için (CSS/JS) gerekiyorsa bu satırı aktif edin:
 // app.use(express.static(path.join(__dirname, 'public')));
 
-// Not: Routes'un yüklenmesi yukarıda, mongoose.connect().then() bloğuna taşındı
-// app.use('/', imageRoutes); // <-- Bu satır yukarı taşındı
 
-// Serverless (Vercel) için Express uygulamasını dışarı aktarın
-module.exports = app;
+// --- 2. MONGOOSE VERİTABANI BAĞLANTISI ---
+const MONGODB_URL = process.env.MONGODB_URL; // Ortam değişkeninizin adı
+
+mongoose.connect(MONGODB_URL)
+    .then(() => console.log('MongoDB Bağlantısı Başarılı.'))
+    .catch(err => {
+        // Bağlantı hatasını sadece logla. Uygulamanın çalışmaya devam etmesini sağla.
+        console.error('MongoDB Bağlantı Hatası:', err.message);
+        // Hata notu: Kullanıcıya bu hatanın MongoDB Atlas ağ ayarlarından kaynaklandığını
+        // bildirmek için router.get('/') içinde bir kontrol yapabilirsiniz.
+    });
+
+
+// --- 3. ROTAYI KULLAN (Hata olmasa bile rota yüklenmeli) ---
+// Bağlantı başarısız olsa bile, Express'in bu rotayı bilmesi gerekir ki
+// 404 yerine doğru hata mesajını (veya 500) döndürebilelim.
+app.use('/', imageRoutes);
+
+// Vercel, Express uygulaması objesinin dışa aktarılmasını gerektirir.
+// Eğer dosyanızın adı 'app.js' ise:
+module.exports = app; 
+
+// EĞER SİZİN DOSYANIZDA AŞAĞIDAKİ GİBİ BİR LISTEN KOMUTU VARSA,
+// VERCEL ORTAMINDA BU SATIRI YORUM SATIRI YAPIN VEYA KALDIRIN:
+/* const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+}); 
+*/

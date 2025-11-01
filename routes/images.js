@@ -63,6 +63,29 @@ router.get('/api/unique-categories', async (req, res) => {
   }
 });
 
+// Her kategoriden 1 resim döndür
+router.get('/unique-by-category', async (req, res) => {
+  try {
+    const allImages = await Image.find().sort({ createdAt: -1 });
+
+    // Her kategoriden sadece 1 tanesini tut
+    const unique = [];
+    const seenCategories = new Set();
+
+    for (const img of allImages) {
+      if (!seenCategories.has(img.category)) {
+        unique.push(img);
+        seenCategories.add(img.category);
+      }
+    }
+
+    res.json(unique); // React'e JSON döner
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Sunucu hatası');
+  }
+});
+
 
 // Yeni resim ekle
 router.post('/', parser.single('image'), async (req, res) => {

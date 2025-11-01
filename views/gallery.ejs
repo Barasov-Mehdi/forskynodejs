@@ -1,108 +1,87 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yönetim Paneli | Image Gallery</title>
+  <title>Image Gallery</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
       background-color: #121212;
       color: #f5f5f5;
-      padding: 30px;
+      padding: 20px;
     }
-
     h1 {
       text-align: center;
+      margin-bottom: 30px;
       font-size: 2.5rem;
       color: #00ff7f;
-      margin-bottom: 30px;
     }
-
     .menu {
       display: flex;
       justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
       flex-wrap: wrap;
-      gap: 20px;
-      margin-bottom: 40px;
     }
-
     .menu a {
       background-color: #1e1e1e;
       color: #00ff7f;
-      padding: 15px 25px;
-      border-radius: 12px;
+      padding: 10px 20px;
+      border-radius: 10px;
       text-decoration: none;
       font-weight: bold;
-      font-size: 1.1rem;
       transition: 0.3s;
     }
-
     .menu a:hover {
       background-color: #00ff7f;
       color: #121212;
-      transform: scale(1.05);
+      transform: translateY(-3px);
     }
-
     .container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
       justify-items: center;
     }
-
     .card {
       background-color: #1e1e1e;
       border-radius: 15px;
       overflow: hidden;
-      text-align: center;
-      padding: 15px;
       width: 100%;
-      max-width: 280px;
+      max-width: 250px;
+      text-align: center;
       transition: 0.3s;
     }
-
     .card:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 20px rgba(0,255,127,0.3);
     }
-
     .card img {
       width: 100%;
-      height: 160px;
+      height: 150px;
       object-fit: cover;
-      border-radius: 10px;
     }
-
-    .card h3 {
-      margin-top: 10px;
-      font-size: 1.1rem;
-    }
-
-    @media (max-width: 600px) {
-      .menu a {
-        padding: 10px 15px;
-        font-size: 1rem;
-      }
-    }
+    .card h3 { padding: 10px; font-size: 1.1rem; }
   </style>
 </head>
 <body>
-  <h1>Səma Üçün İdarə Paneli</h1>
+  <h1>Image Gallery</h1>
 
-  <!-- Tüm sayfalara yönlendiren menü -->
   <div class="menu">
-    <!-- <a href="/api/images">📸 Galeriyi Gör</a> -->
+    <a href="/">Ana Sayfa</a>
     <a href="/api/images/new">➕ Yeni Şəkil Yüklə</a>
     <a href="/api/images/manage">Şəkilləri Düzəlt</a>
   </div>
 
-  <!-- Son eklenen resimlerin küçük önizlemesi -->
+  <div class="container">
+    <% images.forEach(image => { %>
+      <div class="card">
+        <img src="<%= image.imageUrl %>" alt="<%= image.title %>">
+        <h3><%= image.title %> - <%= image.category %></h3>
+      </div>
+    <% }) %>
+  </div>
 </body>
 </html>

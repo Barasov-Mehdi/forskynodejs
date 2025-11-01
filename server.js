@@ -21,6 +21,7 @@ app.set('views', path.join(__dirname, 'views'));
 const imagesRoute = require('./routes/images');
 app.use('/', imagesRoute);
 app.use('/api/images', imagesRoute);
+app.use('/api/images', require('./routes/images'));
 
 // MongoDB bağlantısı
 mongoose

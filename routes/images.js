@@ -13,6 +13,33 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Yönetim sayfası
+router.get('/manage', async (req, res) => {
+  const images = await Image.find().sort({ createdAt: -1 });
+  res.render('manage', { images });
+});
+
+// 🔹 Arama (aynı sayfada göster)
+router.get('/search', async (req, res) => {
+  try {
+    const category = req.query.category?.trim();
+    let images = [];
+
+    if (category) {
+      images = await Image.find({
+        category: { $regex: category, $options: 'i' },
+      }).sort({ createdAt: -1 });
+    } else {
+      images = await Image.find().sort({ createdAt: -1 });
+    }
+
+    // Arama sonuçlarını manage.ejs içinde göster
+    res.render('manage', { images });
+  } catch (err) {
+    console.error('Arama hatası:', err);
+    res.status(500).send(err.message);
+  }
+});
 // Yeni resim ekleme formu
 router.get('/new', (req, res) => {
   res.render('newImage');

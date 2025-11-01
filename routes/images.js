@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Image = require('../models/image');
+const Image = require('../models/Image');
 const { parser, cloudinary } = require('../config/cloudinary'); // Cloudinary config
 
 // Tüm resimleri listele

@@ -45,6 +45,25 @@ router.get('/new', (req, res) => {
   res.render('newImage');
 });
 
+// Her kategoriden 1 resim getir (React tarafı için)
+router.get('/api/unique-categories', async (req, res) => {
+  try {
+    const allImages = await Image.find().sort({ createdAt: -1 });
+    const uniqueCategories = {};
+
+    allImages.forEach(img => {
+      if (!uniqueCategories[img.category]) {
+        uniqueCategories[img.category] = img;
+      }
+    });
+
+    res.json(Object.values(uniqueCategories)); // Her kategoriden sadece 1 resim döner
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // Yeni resim ekle
 router.post('/', parser.single('image'), async (req, res) => {
   const { title, category } = req.body;

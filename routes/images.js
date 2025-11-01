@@ -45,30 +45,11 @@ router.get('/new', (req, res) => {
   res.render('newImage');
 });
 
-// Her kategoriden 1 resim getir (React tarafı için)
-router.get('/api/unique-categories', async (req, res) => {
-  try {
-    const allImages = await Image.find().sort({ createdAt: -1 });
-    const uniqueCategories = {};
-
-    allImages.forEach(img => {
-      if (!uniqueCategories[img.category]) {
-        uniqueCategories[img.category] = img;
-      }
-    });
-
-    res.json(Object.values(uniqueCategories)); // Her kategoriden sadece 1 resim döner
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Her kategoriden 1 resim döndür
 router.get('/unique-by-category', async (req, res) => {
   try {
     const allImages = await Image.find().sort({ createdAt: -1 });
 
-    // Her kategoriden sadece 1 tanesini tut
     const unique = [];
     const seenCategories = new Set();
 
@@ -79,7 +60,7 @@ router.get('/unique-by-category', async (req, res) => {
       }
     }
 
-    res.json(unique); // React'e JSON döner
+    res.json(unique); // React tarafına JSON döndür
   } catch (err) {
     console.error(err);
     res.status(500).send('Sunucu hatası');

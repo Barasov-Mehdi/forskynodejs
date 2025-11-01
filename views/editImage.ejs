@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resim Düzenle</title>
+  <style>
+    body { font-family: Arial; background: #121212; color: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; color: #00ff7f; margin-bottom: 20px; }
+    form { max-width: 500px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 15px; }
+    label { display: block; margin-bottom: 15px; font-weight: bold; }
+    input[type=text], select, input[type=file] { width: 100%; padding: 10px; margin-top:5px; border-radius:8px; border:none; background:#2a2a2a; color:#f5f5f5; }
+    button { width: 100%; padding: 12px; background:#00ff7f; color:#121212; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px; transition:0.3s; }
+    button:hover { background:#00cc5c; }
+    img { display:block; margin:10px auto; max-width:100%; border-radius:10px; }
+  </style>
+</head>
+<body>
+  <h1>Resim Düzenle</h1>
+  <form action="/api/images/edit/<%= image._id %>" method="POST" enctype="multipart/form-data">
+    <label>Başlık:
+      <input type="text" name="title" value="<%= image.title %>" required>
+    </label>
+
+    <label>Kategori:
+      <select name="category" required>
+        <option value="WEDDINGS" <%= image.category==='WEDDINGS'?'selected':'' %>>Weddings</option>
+        <option value="BIRTHDAYS" <%= image.category==='BIRTHDAYS'?'selected':'' %>>Birthdays</option>
+        <option value="NEW BORN" <%= image.category==='NEW BORN'?'selected':'' %>>New Born</option>
+        <option value="BOQUETS" <%= image.category==='BOQUETS'?'selected':'' %>>Bouquets</option>
+        <option value="GIFTS" <%= image.category==='GIFTS'?'selected':'' %>>Gifts</option>
+      </select>
+    </label>
+
+    <label>Yeni Resim (Opsiyonel):
+      <input type="file" name="image" accept="image/*">
+    </label>
+
+    <img src="<%= image.imageUrl %>" alt="<%= image.title %>">
+
+    <button type="submit">Güncelle</button>
+  </form>
+</body>
+</html>

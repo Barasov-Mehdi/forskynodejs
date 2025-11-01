@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Gallery</title>
+  <style>
+    /* Genel ayarlar */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f5f5f5;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      color: #00ff7f;
+    }
+
+    /* Menü */
+    .menu {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .menu a {
+      background-color: #1e1e1e;
+      color: #00ff7f;
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+      text-align: center;
+    }
+
+    .menu a:hover {
+      background-color: #00ff7f;
+      color: #121212;
+      transform: translateY(-3px);
+    }
+
+    /* Kart tasarımı */
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      justify-items: center;
+    }
+
+    .card {
+      background-color: #1e1e1e;
+      border-radius: 15px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 250px;
+      text-align: center;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,255,127,0.3);
+    }
+
+    .card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+
+    .card h3 {
+      padding: 10px;
+      font-size: 1.1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .menu a {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+      }
+
+      .card img {
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Gallery</h1>
+
+  <div class="menu">
+    <a href="/">Ana Sayfa</a>
+    <a href="/api/images/new">Yeni Resim Ekle</a>
+  </div>
+
+  <div class="container">
+    <% images.forEach(image => { %>
+      <div class="card">
+        <img src="<%= image.imageUrl %>" alt="<%= image.title %>">
+        <h3><%= image.title %> - <%= image.category %></h3>
+        <div style="margin:10px 0;">
+          <a href="/api/images/edit/<%= image._id %>" style="color:#00ff7f; margin-right:10px;">Düzenle</a>
+          <form action="/api/images/delete/<%= image._id %>" method="POST" style="display:inline;">
+            <button type="submit" style="background:#ff4d4d; color:#fff; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Sil</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+  
+</body>
+</html>

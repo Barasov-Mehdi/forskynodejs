@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEW BORN', 'BOQUETS', 'GIFTS'];
+const categories = ['WEDDINGS', 'BIRTHDAYS', 'NEWBORN', 'BOQUETS', 'GIFTS'];
 
 const ImageSchema = new mongoose.Schema({
   title: { type: String, required: true },

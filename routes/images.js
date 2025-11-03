@@ -67,19 +67,6 @@ router.get('/unique-by-category', async (req, res) => {
   }
 });
 
-// Kategoriye göre filtrele (Bu hissə dəyişdirilməlidir)
-router.get('/category/:category', async (req, res) => {
-  try {
-    const images = await Image.find({ category: req.params.category });
-    // DƏYİŞİKLİK: res.render('images', { images }); əvəzinə
-    // React-a məlumat göndərmək üçün JSON cavab verməlidir
-    res.json(images);
-  } catch (err) {
-    console.error('Kateqoriya üzrə məhsul gətirmə xətası:', err);
-    res.status(500).json({ message: 'Sunucu hatası' }); // JSON xəta cavabı
-  }
-});
-
 // Yeni resim ekle
 router.post('/', parser.single('image'), async (req, res) => {
   const { title, category } = req.body;

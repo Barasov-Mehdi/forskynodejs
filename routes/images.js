@@ -67,19 +67,15 @@ router.get('/unique-by-category', async (req, res) => {
   }
 });
 
-
-// Belirli bir kategoriye ait tüm ürünleri getir
+// Kategoriye göre filtrele (JSON)
 router.get('/category/:category', async (req, res) => {
   try {
-    const category = req.params.category;
-    const images = await Image.find({ category });
-    res.json(images);
+    const images = await Image.find({ category: req.params.category }).sort({ createdAt: -1 });
+    res.json(images); // ✅ JSON döndür
   } catch (err) {
-    console.error('Kategoriye göre veri alınamadı:', err);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    res.status(500).send(err.message);
   }
 });
-
 
 
 // Yeni resim ekle

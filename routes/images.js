@@ -93,6 +93,17 @@ router.get('/category/:category', async (req, res) => {
 
 /* -------------------- DÜZENLEME & SİLME -------------------- */
 
+// routes/images.js
+router.get('/all-json', async (req, res) => {
+  try {
+    const images = await Image.find().sort({ createdAt: -1 });
+    res.json(images); // JSON döndür
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
 // Silme
 router.post('/delete/:id', async (req, res) => {
   try {

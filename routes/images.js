@@ -68,15 +68,18 @@ router.get('/unique-by-category', async (req, res) => {
 });
 
 
+// Belirli bir kategoriye ait tüm ürünleri getir
 router.get('/category/:category', async (req, res) => {
   try {
     const category = req.params.category;
-    const products = await Image.find({ category });
-    res.json(products);
+    const images = await Image.find({ category });
+    res.json(images);
   } catch (err) {
+    console.error('Kategoriye göre veri alınamadı:', err);
     res.status(500).json({ error: 'Sunucu hatası' });
   }
 });
+
 
 
 // Yeni resim ekle

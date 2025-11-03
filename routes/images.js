@@ -67,13 +67,14 @@ router.get('/unique-by-category', async (req, res) => {
   }
 });
 
-// Kategoriye göre filtrele (JSON)
+// ✅ JSON qaytaran versiya
 router.get('/category/:category', async (req, res) => {
   try {
     const images = await Image.find({ category: req.params.category }).sort({ createdAt: -1 });
-    res.json(images); // ✅ JSON döndür
+    res.json(images); // <--- Əsas dəyişiklik
   } catch (err) {
-    res.status(500).send(err.message);
+    console.error(err);
+    res.status(500).json({ error: 'Server xətası' });
   }
 });
 

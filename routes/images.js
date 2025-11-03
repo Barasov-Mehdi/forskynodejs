@@ -46,10 +46,30 @@ router.get('/new', (req, res) => {
 });
 
 // Her kategoriden 1 resim döndür
+// router.get('/unique-by-category', async (req, res) => {
+//   try {
+//     const allImages = await Image.find().sort({ createdAt: -1 });
+
+//     const unique = [];
+//     const seenCategories = new Set();
+
+//     for (const img of allImages) {
+//       if (!seenCategories.has(img.category)) {
+//         unique.push(img);
+//         seenCategories.add(img.category);
+//       }
+//     }
+
+//     res.json(unique); // React tarafına JSON döndür
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send('Sunucu hatası');
+//   }
+// });
+
 router.get('/unique-by-category', async (req, res) => {
   try {
     const allImages = await Image.find().sort({ createdAt: -1 });
-
     const unique = [];
     const seenCategories = new Set();
 
@@ -63,9 +83,10 @@ router.get('/unique-by-category', async (req, res) => {
     res.json(unique); // React tarafına JSON döndür
   } catch (err) {
     console.error(err);
-    res.status(500).send('Sunucu hatası');
+    res.status(500).json({ error: 'Sunucu hatası' }); // <<< JSON formatında hata
   }
 });
+
 
 // Yeni resim ekle
 router.post('/', parser.single('image'), async (req, res) => {

@@ -68,6 +68,17 @@ router.get('/unique-by-category', async (req, res) => {
 });
 
 
+router.get('/category/:category', async (req, res) => {
+  try {
+    const category = req.params.category;
+    const products = await Image.find({ category });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Sunucu hatası' });
+  }
+});
+
+
 // Yeni resim ekle
 router.post('/', parser.single('image'), async (req, res) => {
   const { title, category } = req.body;
